@@ -1,0 +1,55 @@
+#!/usr/bin/env sh
+echo Turning on lights!
+oscsend localhost 42434 /maschine/button/f1 i 1
+oscsend localhost 42434 /maschine/button/f2 i 1
+oscsend localhost 42434 /maschine/button/f3 i 1
+oscsend localhost 42434 /maschine/button/f4 i 1
+oscsend localhost 42434 /maschine/button/f5 i 1
+oscsend localhost 42434 /maschine/button/f6 i 1
+oscsend localhost 42434 /maschine/button/f7 i 1
+oscsend localhost 42434 /maschine/button/f8 i 1
+oscsend localhost 42434 /maschine/button/auto i 1
+oscsend localhost 42434 /maschine/button/all i 1
+oscsend localhost 42434 /maschine/button/page_left i 1
+oscsend localhost 42434 /maschine/button/page_right i 1
+oscsend localhost 42434 /maschine/button/swing i 1
+oscsend localhost 42434 /maschine/button/volume i 1
+oscsend localhost 42434 /maschine/button/tempo i 1
+oscsend localhost 42434 /maschine/button/all i 1
+oscsend localhost 42434 /maschine/button/navigate i 1
+oscsend localhost 42434 /maschine/button/auto i 1
+oscsend localhost 42434 /maschine/button/browse i 1
+oscsend localhost 42434 /maschine/button/sampling i 1
+oscsend localhost 42434 /maschine/button/note_repeat i 1
+oscsend localhost 42434 /maschine/button/step i 1
+oscsend localhost 42434 /maschine/button/restart i 1
+oscsend localhost 42434 /maschine/button/rec i 1
+oscsend localhost 42434 /maschine/button/step_left i 1
+oscsend localhost 42434 /maschine/button/step_right i 1
+oscsend localhost 42434 /maschine/button/grid i 1
+oscsend localhost 42434 /maschine/button/play i 1
+oscsend localhost 42434 /maschine/button/stop i 1
+oscsend localhost 42434 /maschine/button/shift i 1
+oscsend localhost 42434 /maschine/button/control i 1
+oscsend localhost 42434 /maschine/button/mute i 1
+oscsend localhost 42434 /maschine/button/solo i 1
+oscsend localhost 42434 /maschine/button/select i 1
+oscsend localhost 42434 /maschine/button/duplicate i 1
+oscsend localhost 42434 /maschine/button/pad_mode i 1
+oscsend localhost 42434 /maschine/button/pattern i 1
+oscsend localhost 42434 /maschine/button/scene i 1
+oscsend localhost 42434 /maschine/button/group_a i 1
+oscsend localhost 42434 /maschine/button/group_b i 1
+oscsend localhost 42434 /maschine/button/group_c i 1
+oscsend localhost 42434 /maschine/button/group_d i 1
+oscsend localhost 42434 /maschine/button/group_e i 1
+oscsend localhost 42434 /maschine/button/group_f i 1
+oscsend localhost 42434 /maschine/button/group_g i 1
+oscsend localhost 42434 /maschine/button/group_h i 1
+oscsend localhost 42434 /maschine/button/enter i 1
+oscsend localhost 42434 /maschine/button/erase i 1
+oscsend localhost 42434 /maschine/button/nav_left i 1
+oscsend localhost 42434 /maschine/button/nav_right i 1
+oscsend localhost 42434 /maschine/button/enter i 1
+
+echo Done!

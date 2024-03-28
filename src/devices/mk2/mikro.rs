@@ -30,50 +30,260 @@ use base::{
     MaschinePadStateTransition
 };
 
-const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 4] = [
-    [
-        Some(MaschineButton::Restart),
-        Some(MaschineButton::StepLeft),
-        Some(MaschineButton::StepRight),
-        Some(MaschineButton::Grid),
-        Some(MaschineButton::Play),
-        Some(MaschineButton::Rec),
-        Some(MaschineButton::Erase),
-        Some(MaschineButton::Shift),
-    ],
+use crate::base::maschine::MaschineScreen;
 
+const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
     [
-        Some(MaschineButton::Group),
-        Some(MaschineButton::Browse),
-        Some(MaschineButton::Sampling),
-        Some(MaschineButton::NoteRepeat),
-        Some(MaschineButton::Encoder),
-        None,
-        None,
-        None,
-    ],
-
-    [
-        Some(MaschineButton::F1),
-        Some(MaschineButton::F2),
+        Some(MaschineButton::F8),
+        Some(MaschineButton::F7),
+        Some(MaschineButton::F6),
+        Some(MaschineButton::F5),
+        Some(MaschineButton::F4),
         Some(MaschineButton::F3),
-        Some(MaschineButton::Control),
-        Some(MaschineButton::Nav),
-        Some(MaschineButton::NavLeft),
-        Some(MaschineButton::NavRight),
-        Some(MaschineButton::Main),
+        Some(MaschineButton::F2),
+        Some(MaschineButton::F1),
     ],
 
     [
-        Some(MaschineButton::Scene),
-        Some(MaschineButton::Pattern),
-        Some(MaschineButton::PadMode),
-        Some(MaschineButton::View),
-        Some(MaschineButton::Duplicate),
-        Some(MaschineButton::Select),
-        Some(MaschineButton::Solo),
+        Some(MaschineButton::Auto),
+        Some(MaschineButton::All),
+        Some(MaschineButton::Pageleft),
+        Some(MaschineButton::Pageright),
+        Some(MaschineButton::Sampling),
+        Some(MaschineButton::Browse),
+        Some(MaschineButton::Step),
+        Some(MaschineButton::Control),
+    ],
+
+    [
+        Some(MaschineButton::Nav),
+        Some(MaschineButton::Noterepeat),
+        Some(MaschineButton::Enter),
+        Some(MaschineButton::Navright),
+        Some(MaschineButton::Navleft),
+        Some(MaschineButton::Tempo),
+        Some(MaschineButton::Swing),
+        Some(MaschineButton::Volume),
+    ],
+
+    [
+        Some(MaschineButton::GroupH),
+        Some(MaschineButton::GroupG),
+        Some(MaschineButton::GroupF),
+        Some(MaschineButton::GroupE),
+        Some(MaschineButton::GroupD),
+        Some(MaschineButton::GroupC),
+        Some(MaschineButton::GroupB),
+        Some(MaschineButton::GroupA),
+    ],
+
+    [
+        Some(MaschineButton::Shift),
+        Some(MaschineButton::Erase),
+        Some(MaschineButton::Rec),
+        Some(MaschineButton::Play),
+        Some(MaschineButton::Grid),
+        Some(MaschineButton::Stepright),
+        Some(MaschineButton::Stepleft),
+        Some(MaschineButton::Restart),
+    ],
+    [
         Some(MaschineButton::Mute),
+        Some(MaschineButton::Solo),
+        Some(MaschineButton::Select),
+        Some(MaschineButton::Duplicate),
+        Some(MaschineButton::Navigate),
+        Some(MaschineButton::Padmode),
+        Some(MaschineButton::Pattern),
+        Some(MaschineButton::Scene),
+    ],
+    [
+        Some(MaschineButton::R1),
+        Some(MaschineButton::R2),
+        Some(MaschineButton::R3),
+        Some(MaschineButton::R4),
+        Some(MaschineButton::R5),
+        Some(MaschineButton::R6),
+        Some(MaschineButton::R7),
+        Some(MaschineButton::R8),
+    ],
+
+    [
+        Some(MaschineButton::A1),
+        Some(MaschineButton::A2),
+        Some(MaschineButton::A3),
+        Some(MaschineButton::A4),
+        Some(MaschineButton::A5),
+        Some(MaschineButton::A6),
+        Some(MaschineButton::A7),
+        Some(MaschineButton::A8),
+    ],
+
+    [
+        Some(MaschineButton::B1),
+        Some(MaschineButton::B2),
+        Some(MaschineButton::B3),
+        Some(MaschineButton::B4),
+        Some(MaschineButton::B5),
+        Some(MaschineButton::B6),
+        Some(MaschineButton::B7),
+        Some(MaschineButton::B8),
+    ],
+
+    [
+        Some(MaschineButton::C1),
+        Some(MaschineButton::C2),
+        Some(MaschineButton::C3),
+        Some(MaschineButton::C4),
+        Some(MaschineButton::C5),
+        Some(MaschineButton::C6),
+        Some(MaschineButton::C7),
+        Some(MaschineButton::C8),
+    ],
+
+    [
+        Some(MaschineButton::D1),
+        Some(MaschineButton::D2),
+        Some(MaschineButton::D3),
+        Some(MaschineButton::D4),
+        Some(MaschineButton::D5),
+        Some(MaschineButton::D6),
+        Some(MaschineButton::D7),
+        Some(MaschineButton::D8),
+    ],
+
+    [
+        Some(MaschineButton::E1),
+        Some(MaschineButton::E2),
+        Some(MaschineButton::E3),
+        Some(MaschineButton::E4),
+        Some(MaschineButton::E5),
+        Some(MaschineButton::E6),
+        Some(MaschineButton::E7),
+        Some(MaschineButton::E8),
+    ],
+
+    [
+        Some(MaschineButton::FF1),
+        Some(MaschineButton::FF2),
+        Some(MaschineButton::FF3),
+        Some(MaschineButton::FF4),
+        Some(MaschineButton::FF5),
+        Some(MaschineButton::FF6),
+        Some(MaschineButton::FF7),
+        Some(MaschineButton::FF8),
+    ],
+
+    [
+        Some(MaschineButton::G1),
+        Some(MaschineButton::G2),
+        Some(MaschineButton::G3),
+        Some(MaschineButton::G4),
+        Some(MaschineButton::G5),
+        Some(MaschineButton::G6),
+        Some(MaschineButton::G7),
+        Some(MaschineButton::G8),
+    ],
+
+    [
+        Some(MaschineButton::H1),
+        Some(MaschineButton::H2),
+        Some(MaschineButton::H3),
+        Some(MaschineButton::H4),
+        Some(MaschineButton::H5),
+        Some(MaschineButton::H6),
+        Some(MaschineButton::H7),
+        Some(MaschineButton::H8),
+    ],
+
+    [
+        Some(MaschineButton::I1),
+        Some(MaschineButton::I2),
+        Some(MaschineButton::I3),
+        Some(MaschineButton::I4),
+        Some(MaschineButton::I5),
+        Some(MaschineButton::I6),
+        Some(MaschineButton::I7),
+        Some(MaschineButton::I8),
+    ],
+
+    [
+        Some(MaschineButton::J1),
+        Some(MaschineButton::J2),
+        Some(MaschineButton::J3),
+        Some(MaschineButton::J4),
+        Some(MaschineButton::J5),
+        Some(MaschineButton::J6),
+        Some(MaschineButton::J7),
+        Some(MaschineButton::J8),
+    ],
+
+    [
+        Some(MaschineButton::K1),
+        Some(MaschineButton::K2),
+        Some(MaschineButton::K3),
+        Some(MaschineButton::K4),
+        Some(MaschineButton::K5),
+        Some(MaschineButton::K6),
+        Some(MaschineButton::K7),
+        Some(MaschineButton::K8),
+    ],
+
+    [
+        Some(MaschineButton::L1),
+        Some(MaschineButton::L2),
+        Some(MaschineButton::L3),
+        Some(MaschineButton::L4),
+        Some(MaschineButton::L5),
+        Some(MaschineButton::L6),
+        Some(MaschineButton::L7),
+        Some(MaschineButton::L8),
+    ],
+
+    [
+        Some(MaschineButton::M1),
+        Some(MaschineButton::M2),
+        Some(MaschineButton::M3),
+        Some(MaschineButton::M4),
+        Some(MaschineButton::M5),
+        Some(MaschineButton::M6),
+        Some(MaschineButton::M7),
+        Some(MaschineButton::M8),
+    ],
+
+    [
+        Some(MaschineButton::N1),
+        Some(MaschineButton::N2),
+        Some(MaschineButton::N3),
+        Some(MaschineButton::N4),
+        Some(MaschineButton::N5),
+        Some(MaschineButton::N6),
+        Some(MaschineButton::N7),
+        Some(MaschineButton::N8),
+    ],
+
+    [
+        Some(MaschineButton::O1),
+        Some(MaschineButton::O2),
+        Some(MaschineButton::O3),
+        Some(MaschineButton::O4),
+        Some(MaschineButton::O5),
+        Some(MaschineButton::O6),
+        Some(MaschineButton::O7),
+        Some(MaschineButton::O8),
+    ],
+    [
+        Some(MaschineButton::P1),
+        Some(MaschineButton::P2),
+        Some(MaschineButton::P3),
+        Some(MaschineButton::P4),
+        Some(MaschineButton::P5),
+        Some(MaschineButton::P6),
+        Some(MaschineButton::P7),
+        Some(MaschineButton::P8),
     ]
+
+
 ];
 
 #[allow(dead_code)]
@@ -84,10 +294,14 @@ struct ButtonReport {
 
 pub struct Mikro {
     dev: io::RawFd,
-    light_buf: [u8; 79],
+    light_buf: [u8; 49],
+    light_buf2: [u8; 32],
+    light_buf3: [u8; 57],
+
 
     pads: [MaschinePad; 16],
-    buttons: [u8; 5],
+    buttons: [u8; 24],
+
 
     midi_note_base: u8
 }
@@ -117,20 +331,24 @@ impl Mikro {
     pub fn new(dev: io::RawFd) -> Self {
         let mut _self = Mikro {
             dev: dev,
-            light_buf: [0u8; 79],
+            light_buf: [0u8; 49],
+            light_buf2: [0u8; 32],
+            light_buf3: [0u8; 57],
 
             pads: Mikro::sixteen_maschine_pads(),
-            buttons: [0, 0, 0, 0, 0x10],
+            buttons: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x10],
 
             midi_note_base: 48
         };
 
         _self.light_buf[0] = 0x80;
+        _self.light_buf2[0] = 0x82;
+        _self.light_buf3[0] = 0x81;
         return _self;
     }
 
     fn read_buttons(&mut self, handler: &mut dyn MaschineHandler, buf: &[u8]) {
-        for (idx, &byte) in buf[0..4].iter().enumerate() {
+        for (idx, &byte) in buf[0..23].iter().enumerate() {
             let mut diff = (byte ^ self.buttons[idx]) as u32;
 
             let mut off = 0usize;
@@ -151,20 +369,20 @@ impl Mikro {
             self.buttons[idx] = byte;
         }
 
-        if self.buttons[4] > 0xF {
-            self.buttons[4] = buf[4];
+        if self.buttons[23] > 0xF {
+            self.buttons[23] = buf[23];
             return
-        } else if self.buttons[4] == buf[4] {
+        } else if self.buttons[23] == buf[23] {
             return;
         }
 
-        if ((self.buttons[4] + 1) & 0xF) == buf[4] {
+        if ((self.buttons[23] + 1) & 0xF) == buf[23] {
             handler.encoder_step(self, 0, 1);
         } else {
             handler.encoder_step(self, 0, -1);
         }
 
-        self.buttons[4] = buf[4];
+        self.buttons[23] = buf[23];
     }
 
     fn read_pads(&mut self, handler: &mut dyn MaschineHandler, buf: &[u8]) {
@@ -204,10 +422,13 @@ impl Maschine for Mikro {
 
     fn write_lights(&mut self) {
         unistd::write(self.dev, &self.light_buf).unwrap();
+        unistd::write(self.dev, &self.light_buf2).unwrap();
+        unistd::write(self.dev, &self.light_buf3).unwrap();
+
     }
 
     fn set_pad_light(&mut self, pad: usize, color: u32, brightness: f32) {
-        let offset = 31 + (pad * 3);
+        let offset = 1 + (pad*3);
         let rgb = &mut self.light_buf[offset .. (offset + 3)];
 
         set_rgb_light(rgb, color, brightness);
@@ -221,54 +442,74 @@ impl Maschine for Mikro {
       return self.midi_note_base;
     }
 
-    fn set_button_light(&mut self, btn: MaschineButton, color: u32, brightness: f32) {
-        let idx = match btn {
-            MaschineButton::F1 => 1,
-            MaschineButton::F2 => 2,
-            MaschineButton::F3 => 3,
-            MaschineButton::Control => 4,
-            MaschineButton::Nav => 5,
-            MaschineButton::NavLeft => 6,
-            MaschineButton::NavRight => 7,
-            MaschineButton::Main => 8,
+    fn set_button_light(&mut self, btn: MaschineButton, _color: u32, brightness: f32) {
+        let mut idx = 0;
+        let mut idx2 = 0;
+        match btn {
+            MaschineButton::F8 => idx = 1,
+            MaschineButton::F7 => idx = 2,
+            MaschineButton::F6 => idx = 3,
+            MaschineButton::F5 => idx = 4,
+            MaschineButton::F4 => idx = 5,
+            MaschineButton::F3 => idx = 6,
+            MaschineButton::F2 => idx = 7,
+            MaschineButton::F1 => idx = 8,
 
-            MaschineButton::Group => {
-                set_rgb_light(&mut self.light_buf[9 .. 12], color, brightness);
-                return
-            },
+            MaschineButton::Auto => idx = 9,
+            MaschineButton::All => idx = 10,
+            MaschineButton::Pageleft => idx = 11,
+            MaschineButton::Pageright => idx = 12,
 
-            MaschineButton::Browse => 12,
-            MaschineButton::Sampling => 13,
-            MaschineButton::NoteRepeat => 14,
+            MaschineButton::Sampling => idx = 13,
 
-            MaschineButton::Restart => 15,
-            MaschineButton::StepLeft => 16,
-            MaschineButton::StepRight => 17,
-            MaschineButton::Grid => 18,
-            MaschineButton::Play => 19,
-            MaschineButton::Rec => 20,
-            MaschineButton::Erase => 21,
-            MaschineButton::Shift => 22,
+            MaschineButton::Noterepeat => idx = 14,
+            MaschineButton::Enter => idx = 15,
+            MaschineButton::Navright => idx = 16,
+            MaschineButton::Navleft => idx = 17,
+            MaschineButton::Tempo => idx = 18,
+            MaschineButton::Swing => idx = 19,
+            MaschineButton::Volume => idx = 20,
 
-            MaschineButton::Scene => 23,
-            MaschineButton::Pattern => 24,
-            MaschineButton::PadMode => 25,
-            MaschineButton::View => 26,
-            MaschineButton::Duplicate => 27,
-            MaschineButton::Select => 28,
-            MaschineButton::Solo => 29,
-            MaschineButton::Mute => 30,
+            MaschineButton::Mute => idx = 21,
+            MaschineButton::Solo => idx = 22,
+            MaschineButton::Select => idx = 23,
+            MaschineButton::Duplicate => idx = 24,
+            MaschineButton::Navigate => idx = 25,
+            MaschineButton::Padmode => idx = 26,
+            MaschineButton::Pattern => idx = 27,
+            MaschineButton::Scene => idx = 28,
+            MaschineButton::Control => idx = 29,
+            MaschineButton::Step => idx = 30,
+            MaschineButton::Browse => idx = 31,
 
-            _ => {
-                // happens for buttons which don't have a light (such as the encoder).
-                // could instead return a Result indicating when something such as this
-                // happens, but whatever.
+            MaschineButton::GroupH => idx2 = 2,
+            MaschineButton::GroupG => idx2 = 9,
+            MaschineButton::GroupF => idx2 = 14,
+            MaschineButton::GroupE => idx2 = 22,
+            MaschineButton::GroupD => idx2 = 26,
+            MaschineButton::GroupC => idx2 = 34,
+            MaschineButton::GroupB => idx2 = 39,
+            MaschineButton::GroupA => idx2 = 48,
+            MaschineButton::Shift => idx2 = 47,
+            MaschineButton::Erase => idx2 = 56,
+            MaschineButton::Rec => idx2 = 54,
+            MaschineButton::Play => idx2 = 53,
+            MaschineButton::Grid => idx2 = 52,
+            MaschineButton::Stepright => idx2 = 51,
+            MaschineButton::Stepleft => idx2 = 50,
+            MaschineButton::Restart => idx2 = 49,
 
-                return
-            }
-        };
 
-        self.light_buf[idx] = (brightness * 255.0) as u8;
+        _ => {
+               return
+        },
+    };
+      if idx != 0 {
+        println!("this {idx}");
+        self.light_buf2[idx] = (brightness * 255.0) as u8;
+      } else {
+           self.light_buf3[idx2] = (brightness * 255.0) as u8;
+      }
     }
 
     fn readable(&mut self, handler: &mut dyn MaschineHandler) {
@@ -297,14 +538,14 @@ impl Maschine for Mikro {
     }
 
     fn clear_screen(&mut self) {
-        let mut screen_buf = [0u8; 1 + 8 + 256];
+        let mut screen_buf = [0u8; 2 + 16 + 512];
 
         screen_buf[0] = 0xE0;
 
         screen_buf[5] = 0x20;
         screen_buf[7] = 0x08;
 
-        for i in 0..4 {
+        for i in 0..8 {
             screen_buf[1] = i * 32;
             unistd::write(self.dev, &screen_buf).unwrap();
         }
