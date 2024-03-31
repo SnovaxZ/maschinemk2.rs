@@ -17,9 +17,12 @@
 
 use std::mem::transmute;
 use std::os::unix::io;
+use std::fs::File;
 
 extern crate nix;
 use nix::unistd;
+
+extern crate png;
 
 use base::{
     Maschine,
@@ -29,8 +32,6 @@ use base::{
     MaschinePad,
     MaschinePadStateTransition
 };
-
-use crate::base::maschine::MaschineScreen;
 
 const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
     [
@@ -362,7 +363,6 @@ impl Mikro {
                 } else {
                     handler.button_up(self, btn);
                 }
-
                 diff >>= off;
             }
 
@@ -538,16 +538,71 @@ impl Maschine for Mikro {
     }
 
     fn clear_screen(&mut self) {
-        let mut screen_buf = [0u8; 2 + 16 + 512];
+        let mut screen_buf = [0u8; 1 + 8 + 512];
+        let mut screen_buf2 = [0u8; 1 + 8 + 512];
 
         screen_buf[0] = 0xE0;
+        //screen_buf[3] = 16;
+        screen_buf[5] = 0x08;
+        screen_buf[7] = 0x20;
 
-        screen_buf[5] = 0x20;
-        screen_buf[7] = 0x08;
+        //screen_buf[16] = 0xFF;
 
-        for i in 0..8 {
-            screen_buf[1] = i * 32;
+        screen_buf2[0] = 0xE1;
+        //screen_buf2[3] = 16;
+        screen_buf2[5] = 0x08;
+        screen_buf2[7] = 0x20;
+
+
+        let mut k = 0;
+        let mut t = 0;
+        while k < 9 {
+            screen_buf[1] = k * 4;
+            screen_buf2[1] = k * 4;
+            k += 1;
+
+            if k == 8 {
+                screen_buf[3] = t * 4;
+                screen_buf2[3] = t * 4;
+                if t < 8 {
+                    k = 0;
+                }
+                t += 1;
+            }
+            unistd::write(self.dev, &screen_buf).unwrap();
+            unistd::write(self.dev, &screen_buf2).unwrap();
+
+        }
+
+        println!("Screen clear done?");
+    }
+
+    fn write_screen(&mut self) {
+        let mut limits = png::Limits::default();
+        limits.bytes = 10*1024;
+        let decoder = png::Decoder::new_with_limits(File::open("/home/gabriel/tests/smile.png").unwrap(), limits);
+        let mut reader = decoder.read_info().unwrap();
+        let mut picture = vec![0; reader.output_buffer_size()];
+        let info = reader.next_frame(&mut picture).unwrap();
+        let bytes = &picture[..info.buffer_size()];
+
+        let mut screen_buf = [0u8; 1 + 8+ 512];
+        println!("{}", picture[130]);
+
+        //let mut screen_buf2 = [0u8; 1 + 8+ 512];
+        screen_buf[0] = 0xE0;
+        screen_buf[5] = 0x08;
+        screen_buf[7] = 0x20;
+
+        println!("writescree");
+        for a in 9 .. 512{
+            screen_buf[1] = 0;
+            screen_buf[3] = 0;
+            screen_buf[a] = bytes[a - 9];
             unistd::write(self.dev, &screen_buf).unwrap();
         }
+
+
     }
+
 }

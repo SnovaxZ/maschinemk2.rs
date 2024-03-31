@@ -629,6 +629,9 @@ fn main() {
 
     dev.clear_screen();
 
+    //Trying to draw stuff here
+    dev.write_screen();
+
     for i in 0..16 {
         dev.set_pad_light(i, handler.pad_color(), PAD_RELEASED_BRIGHTNESS);
     }

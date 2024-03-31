@@ -231,10 +231,7 @@ pub enum MaschineButton {
     P8,
 }
 
-pub enum MaschineScreen {
-    Screen1,
-    Screen2,
-}
+
 
 
 pub trait Maschine {
@@ -252,6 +249,7 @@ pub trait Maschine {
 
     fn clear_screen(&mut self);
     fn write_lights(&mut self);
+    fn write_screen(&mut self);
 }
 
 #[allow(unused_variables)]
