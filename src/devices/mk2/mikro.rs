@@ -15,23 +15,17 @@
 //  License along with this program.  If not, see
 //  <http://www.gnu.org/licenses/>.
 
+use std::fs::File;
 use std::mem::transmute;
 use std::os::unix::io;
-use std::fs::File;
 
 extern crate nix;
 use nix::unistd;
 
+extern crate hex;
 extern crate png;
 
-use base::{
-    Maschine,
-    MaschineHandler,
-    MaschineButton,
-
-    MaschinePad,
-    MaschinePadStateTransition
-};
+use base::{Maschine, MaschineButton, MaschineHandler, MaschinePad, MaschinePadStateTransition};
 
 const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
     [
@@ -44,7 +38,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::F2),
         Some(MaschineButton::F1),
     ],
-
     [
         Some(MaschineButton::Auto),
         Some(MaschineButton::All),
@@ -55,7 +48,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::Step),
         Some(MaschineButton::Control),
     ],
-
     [
         Some(MaschineButton::Nav),
         Some(MaschineButton::Noterepeat),
@@ -66,7 +58,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::Swing),
         Some(MaschineButton::Volume),
     ],
-
     [
         Some(MaschineButton::GroupH),
         Some(MaschineButton::GroupG),
@@ -77,7 +68,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::GroupB),
         Some(MaschineButton::GroupA),
     ],
-
     [
         Some(MaschineButton::Shift),
         Some(MaschineButton::Erase),
@@ -108,7 +98,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::R7),
         Some(MaschineButton::R8),
     ],
-
     [
         Some(MaschineButton::A1),
         Some(MaschineButton::A2),
@@ -119,7 +108,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::A7),
         Some(MaschineButton::A8),
     ],
-
     [
         Some(MaschineButton::B1),
         Some(MaschineButton::B2),
@@ -130,7 +118,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::B7),
         Some(MaschineButton::B8),
     ],
-
     [
         Some(MaschineButton::C1),
         Some(MaschineButton::C2),
@@ -141,7 +128,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::C7),
         Some(MaschineButton::C8),
     ],
-
     [
         Some(MaschineButton::D1),
         Some(MaschineButton::D2),
@@ -152,7 +138,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::D7),
         Some(MaschineButton::D8),
     ],
-
     [
         Some(MaschineButton::E1),
         Some(MaschineButton::E2),
@@ -163,7 +148,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::E7),
         Some(MaschineButton::E8),
     ],
-
     [
         Some(MaschineButton::FF1),
         Some(MaschineButton::FF2),
@@ -174,7 +158,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::FF7),
         Some(MaschineButton::FF8),
     ],
-
     [
         Some(MaschineButton::G1),
         Some(MaschineButton::G2),
@@ -185,7 +168,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::G7),
         Some(MaschineButton::G8),
     ],
-
     [
         Some(MaschineButton::H1),
         Some(MaschineButton::H2),
@@ -196,7 +178,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::H7),
         Some(MaschineButton::H8),
     ],
-
     [
         Some(MaschineButton::I1),
         Some(MaschineButton::I2),
@@ -207,7 +188,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::I7),
         Some(MaschineButton::I8),
     ],
-
     [
         Some(MaschineButton::J1),
         Some(MaschineButton::J2),
@@ -218,7 +198,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::J7),
         Some(MaschineButton::J8),
     ],
-
     [
         Some(MaschineButton::K1),
         Some(MaschineButton::K2),
@@ -229,7 +208,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::K7),
         Some(MaschineButton::K8),
     ],
-
     [
         Some(MaschineButton::L1),
         Some(MaschineButton::L2),
@@ -240,7 +218,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::L7),
         Some(MaschineButton::L8),
     ],
-
     [
         Some(MaschineButton::M1),
         Some(MaschineButton::M2),
@@ -251,7 +228,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::M7),
         Some(MaschineButton::M8),
     ],
-
     [
         Some(MaschineButton::N1),
         Some(MaschineButton::N2),
@@ -262,7 +238,6 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::N7),
         Some(MaschineButton::N8),
     ],
-
     [
         Some(MaschineButton::O1),
         Some(MaschineButton::O2),
@@ -282,15 +257,13 @@ const BUTTON_REPORT_TO_MIKROBUTTONS_MAP: [[Option<MaschineButton>; 8]; 23] = [
         Some(MaschineButton::P6),
         Some(MaschineButton::P7),
         Some(MaschineButton::P8),
-    ]
-
-
+    ],
 ];
 
 #[allow(dead_code)]
 struct ButtonReport {
     pub buttons: u32,
-    pub encoder: u8
+    pub encoder: u8,
 }
 
 pub struct Mikro {
@@ -299,12 +272,10 @@ pub struct Mikro {
     light_buf2: [u8; 32],
     light_buf3: [u8; 57],
 
-
     pads: [MaschinePad; 16],
     buttons: [u8; 24],
 
-
-    midi_note_base: u8
+    midi_note_base: u8,
 }
 
 impl Mikro {
@@ -325,7 +296,7 @@ impl Mikro {
             MaschinePad::default(),
             MaschinePad::default(),
             MaschinePad::default(),
-            MaschinePad::default()
+            MaschinePad::default(),
         ]
     }
 
@@ -337,9 +308,11 @@ impl Mikro {
             light_buf3: [0u8; 57],
 
             pads: Mikro::sixteen_maschine_pads(),
-            buttons: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x10],
+            buttons: [
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x10,
+            ],
 
-            midi_note_base: 48
+            midi_note_base: 48,
         };
 
         _self.light_buf[0] = 0x80;
@@ -371,7 +344,7 @@ impl Mikro {
 
         if self.buttons[23] > 0xF {
             self.buttons[23] = buf[23];
-            return
+            return;
         } else if self.buttons[23] == buf[23] {
             return;
         }
@@ -392,14 +365,11 @@ impl Mikro {
             let pressure = ((pads[i] & 0xFFF) as f32) / 4095.0;
 
             match self.pads[i].pressure_val(pressure) {
-                MaschinePadStateTransition::Pressed =>
-                    handler.pad_pressed(self, i, pressure),
+                MaschinePadStateTransition::Pressed => handler.pad_pressed(self, i, pressure),
 
-                MaschinePadStateTransition::Aftertouch =>
-                    handler.pad_aftertouch(self, i, pressure),
+                MaschinePadStateTransition::Aftertouch => handler.pad_aftertouch(self, i, pressure),
 
-                MaschinePadStateTransition::Released =>
-                    handler.pad_released(self, i),
+                MaschinePadStateTransition::Released => handler.pad_released(self, i),
 
                 _ => {}
             }
@@ -411,8 +381,8 @@ fn set_rgb_light(rgb: &mut [u8], color: u32, brightness: f32) {
     let brightness = brightness * 0.5;
 
     rgb[0] = (brightness * (((color >> 16) & 0xFF) as f32)) as u8;
-    rgb[1] = (brightness * (((color >>  8) & 0xFF) as f32)) as u8;
-    rgb[2] = (brightness * (((color      ) & 0xFF) as f32)) as u8;
+    rgb[1] = (brightness * (((color >> 8) & 0xFF) as f32)) as u8;
+    rgb[2] = (brightness * (((color) & 0xFF) as f32)) as u8;
 }
 
 impl Maschine for Mikro {
@@ -424,22 +394,21 @@ impl Maschine for Mikro {
         unistd::write(self.dev, &self.light_buf).unwrap();
         unistd::write(self.dev, &self.light_buf2).unwrap();
         unistd::write(self.dev, &self.light_buf3).unwrap();
-
     }
 
     fn set_pad_light(&mut self, pad: usize, color: u32, brightness: f32) {
-        let offset = 1 + (pad*3);
-        let rgb = &mut self.light_buf[offset .. (offset + 3)];
+        let offset = 1 + (pad * 3);
+        let rgb = &mut self.light_buf[offset..(offset + 3)];
 
         set_rgb_light(rgb, color, brightness);
     }
 
     fn set_midi_note_base(&mut self, base: u8) {
-      self.midi_note_base = base;
+        self.midi_note_base = base;
     }
 
     fn get_midi_note_base(&self) -> u8 {
-      return self.midi_note_base;
+        return self.midi_note_base;
     }
 
     fn set_button_light(&mut self, btn: MaschineButton, _color: u32, brightness: f32) {
@@ -499,17 +468,14 @@ impl Maschine for Mikro {
             MaschineButton::Stepleft => idx2 = 50,
             MaschineButton::Restart => idx2 = 49,
 
-
-        _ => {
-               return
-        },
-    };
-      if idx != 0 {
-        println!("this {idx}");
-        self.light_buf2[idx] = (brightness * 255.0) as u8;
-      } else {
-           self.light_buf3[idx2] = (brightness * 255.0) as u8;
-      }
+            _ => return,
+        };
+        if idx != 0 {
+            println!("this {idx}");
+            self.light_buf2[idx] = (brightness * 255.0) as u8;
+        } else {
+            self.light_buf3[idx2] = (brightness * 255.0) as u8;
+        }
     }
 
     fn readable(&mut self, handler: &mut dyn MaschineHandler) {
@@ -517,23 +483,23 @@ impl Maschine for Mikro {
 
         let nbytes = match unistd::read(self.dev, &mut buf) {
             Err(err) => panic!("read failed: {}", err.to_string()),
-            Ok(nbytes) => nbytes
+            Ok(nbytes) => nbytes,
         };
 
         let report_nr = buf[0];
-        let buf = &buf[1 .. nbytes];
+        let buf = &buf[1..nbytes];
 
         match report_nr {
             0x01 => self.read_buttons(handler, &buf),
             0x20 => self.read_pads(handler, &buf),
-            _ => println!(" :: {:2X}: got {} bytes", report_nr, nbytes)
+            _ => println!(" :: {:2X}: got {} bytes", report_nr, nbytes),
         }
     }
 
     fn get_pad_pressure(&self, pad_idx: usize) -> Result<f32, ()> {
         match pad_idx {
-            0 ..= 15 => Ok(self.pads[pad_idx].get_pressure()),
-            _ => Err(())
+            0..=15 => Ok(self.pads[pad_idx].get_pressure()),
+            _ => Err(()),
         }
     }
 
@@ -553,7 +519,6 @@ impl Maschine for Mikro {
         screen_buf2[5] = 0x08;
         screen_buf2[7] = 0x20;
 
-
         let mut k = 0;
         let mut t = 0;
         while k < 9 {
@@ -571,7 +536,6 @@ impl Maschine for Mikro {
             }
             unistd::write(self.dev, &screen_buf).unwrap();
             unistd::write(self.dev, &screen_buf2).unwrap();
-
         }
 
         println!("Screen clear done?");
@@ -579,30 +543,114 @@ impl Maschine for Mikro {
 
     fn write_screen(&mut self) {
         let mut limits = png::Limits::default();
-        limits.bytes = 10*1024;
-        let decoder = png::Decoder::new_with_limits(File::open("/home/gabriel/tests/smile.png").unwrap(), limits);
+        limits.bytes = 10 * 1024;
+        let decoder = png::Decoder::new_with_limits(
+            File::open("picturetest.png").unwrap(),
+            limits,
+        );
         let mut reader = decoder.read_info().unwrap();
         let mut picture = vec![0; reader.output_buffer_size()];
         let info = reader.next_frame(&mut picture).unwrap();
         let bytes = &picture[..info.buffer_size()];
-
-        let mut screen_buf = [0u8; 1 + 8+ 512];
-        println!("{}", picture[130]);
+        let mut screen_buf = [0u8; 1 + 8 + 512];
+        println!("{}", bytes.len());
 
         //let mut screen_buf2 = [0u8; 1 + 8+ 512];
         screen_buf[0] = 0xE0;
         screen_buf[5] = 0x08;
         screen_buf[7] = 0x20;
 
-        println!("writescree");
-        for a in 9 .. 512{
-            screen_buf[1] = 0;
-            screen_buf[3] = 0;
-            screen_buf[a] = bytes[a - 9];
-            unistd::write(self.dev, &screen_buf).unwrap();
+        screen_buf[1] = 0;
+        screen_buf[3] = 0;
+
+        let mut screen_writer = 9;
+        let mut steps = 0;
+        let mut bits = [0u8; 4097];
+        let mut inc = 0;
+        let mut ok = 0;
+        let mut count2 = 0;
+
+        let mut a1 = 0;
+        let mut a2 = 0;
+        let mut a3 = 0;
+        let mut a4 = 0;
+        let mut a5 = 0;
+        let mut a6 = 0;
+        let mut a7 = 0;
+        let mut a8 = 0;
+
+        for count in 0..bytes.len() {
+            let c = 1 + 4 * count;
+            let mut swap = 0;
+            //if bytes[c] / 8 + bytes[c + 1] / 8  + bytes[c + 2] / 8 + bytes[c + 3] / 8  + bytes[c + 4] / 8  + bytes[c + 5] / 8  + bytes[c + 6] / 8  + bytes[c + 7] / 8 >= 32{
+            if c < bytes.len() - 3 {
+                if bytes[c] / 2 + bytes[c + 2] / 2 >= 128 {
+                    swap = 1;
+                } else {
+                    swap = 0;
+                }
+                //println!("{}", swap);
+            }
+            let mut binary = [0u8; 4097];
+            if c < 65534 {
+                //print!("{}, ", bytes[count]);
+                let intval;
+                match inc {
+                    0 => a1 = swap,
+                    1 => a2 = swap,
+                    2 => a3 = swap,
+                    3 => a4 = swap,
+                    4 => a5 = swap,
+                    5 => a6 = swap,
+                    6 => a7 = swap,
+                    7 => a8 = swap,
+                    _ => return,
+                }
+                inc += 1;
+                if inc == 8 {
+                    inc = 0;
+                }
+                ok += 1;
+                if ok == 8 {
+                    let combination = format!("{}{}{}{}{}{}{}{}", a1, a2, a3, a4, a5, a6, a7, a8);
+                    intval = usize::from_str_radix(&combination, 2).unwrap();
+                    ok = 0;
+                    binary[count2] = intval as u8;
+                    bits[count2] = binary[count2];
+                    count2 += 1;
+                    a1 = 0;
+                    a2 = 0;
+                    a3 = 0;
+                    a4 = 0;
+                    a5 = 0;
+                    a6 = 0;
+                    a7 = 0;
+                    a8 = 0;
+                }
+            }
+            //let intval = usize::from_str_radix(&combination, 4).unwrap();
+            //println!("{}", combination)
         }
 
-
+        for a in 0..bits.len() {
+            if screen_writer == 10 {
+                if steps <= 30 {
+                    screen_buf[1] += 1;
+                    steps += 1;
+                    screen_writer = 9;
+                    screen_buf[screen_writer] = bits[a];
+                } else {
+                    screen_buf[3] += 1;
+                    screen_buf[1] = 0;
+                    steps = 0;
+                    screen_writer = 9;
+                    screen_buf[screen_writer] = bits[a];
+                }
+            }
+            //println!("{}", bits[a]);
+            unistd::write(self.dev, &screen_buf).unwrap();
+            screen_writer += 1;
+        }
+        println!("writescreen");
     }
-
 }
