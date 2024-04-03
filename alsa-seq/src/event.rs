@@ -19,6 +19,7 @@
 // SOFTWARE.
 
 use libc::{
+    c_int,
     c_uint,
     c_uchar
 };
@@ -46,6 +47,9 @@ pub trait TransliteratedFromCMacros {
 
     fn set_note(&mut self, _type: c_uint, channel: Channel, note_number: u8, velocity: u8,
                 duration: c_uint);
+    fn set_button(&mut self, _type: c_uint);
+
+    fn set_cc(&mut self, _type: c_uint, channel: Channel, controller_number: u16, position: u8);
 }
 
 impl TransliteratedFromCMacros for snd_seq_event_t {
@@ -73,7 +77,7 @@ impl TransliteratedFromCMacros for snd_seq_event_t {
 
     #[inline]
     fn set_note(&mut self, _type: c_uint, channel: Channel, note_number: u8, velocity: u8,
-                duration: c_uint) {
+                duration: c_uint)   {
         self._type = _type as snd_seq_event_type_t;
         self.set_fixed();
 
@@ -85,9 +89,21 @@ impl TransliteratedFromCMacros for snd_seq_event_t {
             (*note).duration = duration;
         }
     }
-
+    fn set_button(&mut self, _type: c_uint) {
+        self._type = _type as snd_seq_event_type_t;
+        //self.set_fixed();
+    }
+    fn set_cc(&mut self, _type: c_uint, channel: Channel, controller_number: u16, position: u8) {
+        self._type = _type as snd_seq_event_type_t;
+        //self.set_fixed()
+        let ctrl = self.data.control();
+        unsafe {
+            (*ctrl).channel = (channel as c_uchar) + 1;
+            (*ctrl).param = controller_number as c_uint;
+            (*ctrl).value = position as c_int;
+        }
+    }
 }
-
 pub trait ToSndSeqEvent {
     fn to_snd_seq_event(&self) -> Option<snd_seq_event_t>;
 }
@@ -128,6 +144,19 @@ impl ToSndSeqEvent for Message {
 
             Message::PolyphonicPressure(channel, note_number, velocity) =>
                 ev.set_note(SND_SEQ_EVENT_KEYPRESS, channel, note_number, velocity, 0),
+
+            Message::Start =>
+                ev.set_button(SND_SEQ_EVENT_START),
+
+            Message::TimingClock =>
+                ev.set_button(SND_SEQ_EVENT_CLOCK),
+
+            Message::Stop =>
+                ev.set_button(SND_SEQ_EVENT_STOP),
+
+            Message::RPN7(channel, control_number, pos) =>
+                ev.set_cc(SND_SEQ_EVENT_CONTROLLER, channel, control_number, pos),
+
 
             _ => return None
         }

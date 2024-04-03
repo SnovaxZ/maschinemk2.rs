@@ -15,31 +15,23 @@
 //  License along with this program.  If not, see
 //  <http://www.gnu.org/licenses/>.
 
-use std::path::Path;
-use std::os::unix::io::AsRawFd;
 use std::env;
+use std::os::unix::io::AsRawFd;
+use std::path::Path;
 
-use std::net::{
-    UdpSocket,
-    SocketAddr,
-    SocketAddrV4,
-    Ipv4Addr
-};
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 
-use std::time::{
-    Duration,
-    SystemTime
-};
+use std::time::{Duration, SystemTime};
 
 extern crate nix;
-use nix::fcntl::{O_RDWR, O_NONBLOCK};
-use nix::{fcntl,sys};
+use nix::fcntl::{O_NONBLOCK, O_RDWR};
 use nix::poll::*;
+use nix::{fcntl, sys};
 
-extern crate midi;
 extern crate alsa_seq;
-use midi::*;
+extern crate midi;
 use alsa_seq::*;
+use midi::*;
 
 extern crate hsl;
 use hsl::HSL;
@@ -48,19 +40,15 @@ use hsl::HSL;
 extern crate tinyosc;
 use tinyosc as osc;
 
-mod devices;
 mod base;
+mod devices;
 
-use base::{
-    Maschine,
-    MaschineHandler,
-    MaschineButton
-};
+use base::{Maschine, MaschineButton, MaschineHandler};
 
 fn ev_loop(dev: &mut dyn Maschine, mhandler: &mut MHandler) {
     let mut fds = [
         PollFd::new(dev.get_fd(), POLLIN, EventFlags::empty()),
-        PollFd::new(mhandler.osc_socket.as_raw_fd(), POLLIN, EventFlags::empty())
+        PollFd::new(mhandler.osc_socket.as_raw_fd(), POLLIN, EventFlags::empty()),
     ];
 
     let mut now = SystemTime::now();
@@ -94,7 +82,7 @@ const PAD_RELEASED_BRIGHTNESS: f32 = 0.015;
 enum PressureShape {
     Linear,
     Exponential(f32),
-    Constant(f32)
+    Constant(f32),
 }
 
 struct MHandler<'a> {
@@ -102,12 +90,14 @@ struct MHandler<'a> {
 
     seq_handle: &'a SequencerHandle,
     seq_port: &'a SequencerPort<'a>,
+    seq_handle_in: &'a SequencerHandle,
+    seq_port_in: &'a SequencerPort<'a>,
 
     pressure_shape: PressureShape,
     send_aftertouch: bool,
 
     osc_socket: &'a UdpSocket,
-    osc_outgoing_addr: SocketAddr
+    osc_outgoing_addr: SocketAddr,
 }
 
 fn osc_button_to_btn_map(osc_button: &str) -> Option<MaschineButton> {
@@ -115,15 +105,12 @@ fn osc_button_to_btn_map(osc_button: &str) -> Option<MaschineButton> {
         "restart" => Some(MaschineButton::Restart),
         "step_left" => Some(MaschineButton::Stepleft),
         "step_right" => Some(MaschineButton::Stepright),
-        "grid"  => Some(MaschineButton::Grid),
+        "grid" => Some(MaschineButton::Grid),
         "play" => Some(MaschineButton::Play),
         "rec" => Some(MaschineButton::Rec),
         "stop" => Some(MaschineButton::Erase),
         "shift" => Some(MaschineButton::Shift),
 
-
-
-        
         "browse" => Some(MaschineButton::Browse),
         "sampling" => Some(MaschineButton::Sampling),
         "note_repeat" => Some(MaschineButton::Noterepeat),
@@ -177,7 +164,7 @@ fn osc_button_to_btn_map(osc_button: &str) -> Option<MaschineButton> {
         "page_right" => Some(MaschineButton::Pageright),
         "page_left" => Some(MaschineButton::Pageleft),
 
-        _ => None
+        _ => None,
     }
 }
 
@@ -216,8 +203,6 @@ fn btn_to_osc_button_map(btn: MaschineButton) -> &'static str {
         MaschineButton::All => "all",
         MaschineButton::Navigate => "navigate",
         MaschineButton::Tempo => "tempo",
-
-
 
         MaschineButton::Control => "control",
         MaschineButton::Nav => "nav",
@@ -396,8 +381,7 @@ fn btn_to_osc_button_map(btn: MaschineButton) -> &'static str {
         MaschineButton::P5 => "P5",
         MaschineButton::P6 => "P6",
         MaschineButton::P7 => "P7",
-        MaschineButton::P8 => "P8"
-
+        MaschineButton::P8 => "P8",
     }
 }
 
@@ -405,16 +389,14 @@ impl<'a> MHandler<'a> {
     fn pad_color(&self) -> u32 {
         let (r, g, b) = self.color.to_rgb();
 
-          ((r as u32) << 16)
-        | ((g as u32) << 8)
-        |  (b as u32)
+        ((r as u32) << 16) | ((g as u32) << 8) | (b as u32)
     }
 
     fn pressure_to_vel(&self, pressure: f32) -> U7 {
         (match self.pressure_shape {
             PressureShape::Linear => pressure,
             PressureShape::Exponential(power) => pressure.powf(power),
-            PressureShape::Constant(c_pressure) => c_pressure
+            PressureShape::Constant(c_pressure) => c_pressure,
         } * 127.0) as U7
     }
 
@@ -423,7 +405,7 @@ impl<'a> MHandler<'a> {
         for i in 0..16 {
             let brightness = match maschine.get_pad_pressure(i).unwrap() {
                 b if b == 0.0 => PAD_RELEASED_BRIGHTNESS,
-                pressure @ _ => pressure.sqrt()
+                pressure @ _ => pressure.sqrt(),
             };
 
             maschine.set_pad_light(i, self.pad_color(), brightness);
@@ -441,7 +423,7 @@ impl<'a> MHandler<'a> {
             }
         };
 
-        let msg = match osc::Message::deserialize(&buf[.. nbytes]) {
+        let msg = match osc::Message::deserialize(&buf[..nbytes]) {
             Ok(msg) => msg,
             Err(_) => {
                 println!(" :: couldn't decode OSC message :c");
@@ -454,70 +436,334 @@ impl<'a> MHandler<'a> {
 
     fn handle_osc_messge(&self, maschine: &mut dyn Maschine, msg: &osc::Message) {
         if msg.path.starts_with("/maschine/button") {
-            let btn = match osc_button_to_btn_map(&msg.path[17 ..]) {
+            let btn = match osc_button_to_btn_map(&msg.path[17..]) {
                 Some(btn) => btn,
-                None => return
+                None => return,
             };
 
             match msg.arguments.len() {
-                1 =>
-                    maschine.set_button_light(btn, 0xFFFFFF, match msg.arguments[0] {
+                1 => maschine.set_button_light(
+                    btn,
+                    0xFFFFFF,
+                    match msg.arguments[0] {
                         osc::Argument::i(val) => val as f32,
                         osc::Argument::f(val) => val,
-                        _ => return
-                    }),
+                        _ => return,
+                    },
+                ),
 
                 2 => {
-                    if let (&osc::Argument::i(color), &osc::Argument::f(brightness))
-                        = (&msg.arguments[0], &msg.arguments[1]) {
+                    if let (&osc::Argument::i(color), &osc::Argument::f(brightness)) =
+                        (&msg.arguments[0], &msg.arguments[1])
+                    {
                         maschine.set_button_light(btn, (color as u32) & 0xFFFFFF, brightness);
                     }
                 }
 
-                _ => return
+                _ => return,
             };
-        }
-        else if msg.path.starts_with("/maschine/pad") {
+        } else if msg.path.starts_with("/maschine/pad") {
             match msg.arguments.len() {
                 3 => {
-                    if let (&osc::Argument::i(pad), &osc::Argument::i(color), &osc::Argument::f(brightness))
-                        = (&msg.arguments[0], &msg.arguments[1], &msg.arguments[2]) {
-                        maschine.set_pad_light( pad as usize, (color as u32) & 0xFFFFFF, brightness as f32);
+                    if let (
+                        &osc::Argument::i(pad),
+                        &osc::Argument::i(color),
+                        &osc::Argument::f(brightness),
+                    ) = (&msg.arguments[0], &msg.arguments[1], &msg.arguments[2])
+                    {
+                        maschine.set_pad_light(
+                            pad as usize,
+                            (color as u32) & 0xFFFFFF,
+                            brightness as f32,
+                        );
                     }
                 }
 
-                _ => return
+                _ => return,
             }
-        }
-        else if msg.path.starts_with("/maschine/midi_note_base") {
+        } else if msg.path.starts_with("/maschine/midi_note_base") {
             match msg.arguments.len() {
                 1 => {
-                  if let osc::Argument::i(base) = msg.arguments[0] {
-                    maschine.set_midi_note_base(base as u8);
-                  }
+                    if let osc::Argument::i(base) = msg.arguments[0] {
+                        maschine.set_midi_note_base(base as u8);
+                    }
                 }
-                _ => return
+                _ => return,
             }
         }
-
     }
 
     fn send_osc_msg(&self, path: &str, arguments: Vec<osc::Argument>) {
         let msg = osc::Message {
             path: path,
-            arguments: arguments
+            arguments: arguments,
         };
 
-        match self.osc_socket.send_to(&*msg.serialize().unwrap(), &self.osc_outgoing_addr) {
-            Ok(_) => {},
-            Err(e) => println!(" :: error in send_to: {}", e)
+        match self
+            .osc_socket
+            .send_to(&*msg.serialize().unwrap(), &self.osc_outgoing_addr)
+        {
+            Ok(_) => {}
+            Err(e) => println!(" :: error in send_to: {}", e),
         }
     }
 
-    fn send_osc_button_msg(&self, btn: MaschineButton, status: usize) {
-        self.send_osc_msg(
-            &*format!("/maschine/button/{}", btn_to_osc_button_map(btn)),
-            osc_args![status as i32]);
+    fn send_osc_button_msg(
+        &mut self,
+        maschine: &mut dyn Maschine,
+        btn: MaschineButton,
+        status: usize,
+    ) {
+        let button = btn_to_osc_button_map(btn);
+        let timing = Message::TimingClock;
+        let controlbase = 16;
+        match button {
+            "play" => {
+                if status > 0 {
+                    let msg = Message::RPN7(Ch1, controlbase - 1, status as u8);
+                    self.seq_port.send_message(&msg).unwrap();
+                    self.seq_handle.drain_output();
+                }
+            }
+            "stop" => {
+                if status > 0 {
+                let msg = Message::RPN7(Ch1, controlbase - 2, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+                }
+            }
+            "rec" => {
+                if status > 0 {
+                let msg = Message::RPN7(Ch1, controlbase - 3, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+                }
+            }
+
+            "A8" => {
+                let msg = Message::RPN7(Ch1, controlbase, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+
+            "B5" => {
+                let msg = Message::RPN7(Ch1, controlbase + 1, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "B6" => {
+                let msg = Message::RPN7(Ch1, controlbase + 1, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "B7" => {
+                let msg = Message::RPN7(Ch1, controlbase + 1, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "B8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 1, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "C8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 1, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+
+            "D5" => {
+                let msg = Message::RPN7(Ch1, controlbase + 2, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "D6" => {
+                let msg = Message::RPN7(Ch1, controlbase + 2, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "D7" => {
+                let msg = Message::RPN7(Ch1, controlbase + 2, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "D8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 2, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "E8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 2, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+
+            "FF5" => {
+                let msg = Message::RPN7(Ch1, controlbase + 3, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "FF6" => {
+                let msg = Message::RPN7(Ch1, controlbase + 3, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "FF7" => {
+                let msg = Message::RPN7(Ch1, controlbase + 3, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "FF8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 3, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "G8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 3, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+
+            "H5" => {
+                let msg = Message::RPN7(Ch1, controlbase + 4, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "H6" => {
+                let msg = Message::RPN7(Ch1, controlbase + 4, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "H7" => {
+                let msg = Message::RPN7(Ch1, controlbase + 4, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "H8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 4, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "I8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 4, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+
+            "J5" => {
+                let msg = Message::RPN7(Ch1, controlbase + 5, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "J6" => {
+                let msg = Message::RPN7(Ch1, controlbase + 5, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "J7" => {
+                let msg = Message::RPN7(Ch1, controlbase + 5, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "J8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 5, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "K8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 5, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "L5" => {
+                let msg = Message::RPN7(Ch1, controlbase + 6, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "L6" => {
+                let msg = Message::RPN7(Ch1, controlbase + 6, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "L7" => {
+                let msg = Message::RPN7(Ch1, controlbase + 6, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "L8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 6, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "M8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 6, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "N5" => {
+                let msg = Message::RPN7(Ch1, controlbase + 7, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "N6" => {
+                let msg = Message::RPN7(Ch1, controlbase + 7, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "N7" => {
+                let msg = Message::RPN7(Ch1, controlbase + 7, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "N8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 7, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "O8" => {
+                let msg = Message::RPN7(Ch1, controlbase + 7, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "P5" => {
+                let msg = Message::RPN7(Ch1, controlbase + 8, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "P6" => {
+                let msg = Message::RPN7(Ch1, controlbase + 8, status as u8);
+                self.seq_port.send_message(&msg).unwrap();
+                self.seq_handle.drain_output();
+            }
+            "group_a" => {
+                maschine.set_midi_note_base(24);
+            }
+            "group_b" => {
+                maschine.set_midi_note_base(36);
+            }
+            "group_c" => {
+                maschine.set_midi_note_base(48);
+            }
+            "group_d" => {
+                maschine.set_midi_note_base(60);
+            }
+            "group_e" => {
+                maschine.set_midi_note_base(72);
+            }
+            "group_f" => {
+                maschine.set_midi_note_base(84);
+            }
+            "group_g" => {
+                maschine.set_midi_note_base(96);
+            }
+            "group_h" => {
+                maschine.set_midi_note_base(108);
+            }
+
+            _ => {}
+        }
+
+        self.send_osc_msg(&*format!("/{}", button), osc_args![status as f32]);
     }
 
     fn send_osc_encoder_msg(&self, delta: i32) {
@@ -525,12 +771,7 @@ impl<'a> MHandler<'a> {
     }
 }
 
-const PAD_NOTE_MAP: [U7; 16] = [
-    12, 13, 14, 15,
-     8,  9, 10, 11,
-     4,  5,  6,  7,
-     0,  1,  2,  3
-];
+const PAD_NOTE_MAP: [U7; 16] = [12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3];
 
 impl<'a> MaschineHandler for MHandler<'a> {
     fn pad_pressed(&mut self, maschine: &mut dyn Maschine, pad_idx: usize, pressure: f32) {
@@ -550,12 +791,11 @@ impl<'a> MaschineHandler for MHandler<'a> {
         }
 
         if !self.send_aftertouch {
-            return
+            return;
         }
 
         let midi_note = maschine.get_midi_note_base() + PAD_NOTE_MAP[pad_idx];
-        let msg = Message::PolyphonicPressure(Ch1, midi_note,
-                                              self.pressure_to_vel(pressure));
+        let msg = Message::PolyphonicPressure(Ch1, midi_note, self.pressure_to_vel(pressure));
 
         self.seq_port.send_message(&msg).unwrap();
         self.seq_handle.drain_output();
@@ -576,36 +816,50 @@ impl<'a> MaschineHandler for MHandler<'a> {
         self.send_osc_encoder_msg(delta);
     }
 
-    fn button_down(&mut self, _: &mut dyn Maschine, btn: MaschineButton) {
-        self.send_osc_button_msg(btn, 1);
+    fn button_down(&mut self, maschine: &mut dyn Maschine, btn: MaschineButton, byte: u8) {
+        self.send_osc_button_msg(maschine, btn, byte as usize);
     }
 
-    fn button_up(&mut self, _: &mut dyn Maschine, btn: MaschineButton) {
-        self.send_osc_button_msg(btn, 0);
+    fn button_up(&mut self, maschine: &mut dyn Maschine, btn: MaschineButton, byte: u8) {
+        self.send_osc_button_msg(maschine, btn, byte as usize);
     }
 }
 
 fn main() {
     let args: Vec<_> = env::args().collect();
 
-    if args.len() != 2 {
+    if args.len() < 2 {
         usage(&args[0]);
         panic!("missing hidraw device path");
     }
 
-    let dev_fd = match fcntl::open(Path::new(&args[1]), O_RDWR | O_NONBLOCK,
-                                   sys::stat::Mode::empty()) {
-        Err(err) => panic!("couldn't open {}: {}", args[1],
-                           err.errno().desc()),
-        Ok(file) => file
+    let dev_fd = match fcntl::open(
+        Path::new(&args[1]),
+        O_RDWR | O_NONBLOCK,
+        sys::stat::Mode::empty(),
+    ) {
+        Err(err) => panic!("couldn't open {}: {}", args[1], err.errno().desc()),
+        Ok(file) => file,
     };
 
     let osc_socket = UdpSocket::bind("127.0.0.1:42434").unwrap();
 
     let seq_handle = SequencerHandle::open("maschine.rs", HandleOpenStreams::Output).unwrap();
-    let seq_port = seq_handle.create_port(
-        "Pads MIDI", PortCapabilities::PORT_CAPABILITY_READ | PortCapabilities::PORT_CAPABILITY_SUBS_READ, PortType::MidiGeneric)
-            .unwrap();
+    let seq_handle_in = SequencerHandle::open("maschine.rs", HandleOpenStreams::Input).unwrap();
+    let seq_port = seq_handle
+        .create_port(
+            "Pads MIDI",
+            PortCapabilities::PORT_CAPABILITY_READ | PortCapabilities::PORT_CAPABILITY_SUBS_READ,
+            PortType::MidiGeneric,
+        )
+        .unwrap();
+    let seq_port_in = seq_handle_in
+        .create_port(
+            "input",
+            PortCapabilities::PORT_CAPABILITY_READ | PortCapabilities::PORT_CAPABILITY_SUBS_WRITE,
+            PortType::MidiGeneric,
+        )
+        .unwrap();
 
     let mut dev = devices::mk2::Mikro::new(dev_fd);
 
@@ -613,25 +867,27 @@ fn main() {
         color: HSL {
             h: 0.0,
             s: 1.0,
-            l: 0.3
+            l: 0.3,
         },
 
         seq_port: &seq_port,
         seq_handle: &seq_handle,
+        seq_port_in: &seq_port_in,
+        seq_handle_in: &seq_handle_in,
 
         pressure_shape: PressureShape::Exponential(0.4),
         send_aftertouch: false,
 
         osc_socket: &osc_socket,
-        osc_outgoing_addr: SocketAddr::V4(
-            SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 42435))
+        osc_outgoing_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 42435)),
     };
 
     dev.clear_screen();
 
     //Trying to draw stuff here
-    dev.write_screen();
-
+    if args.len() < 3 {
+        dev.write_screen();
+    }
     for i in 0..16 {
         dev.set_pad_light(i, handler.pad_color(), PAD_RELEASED_BRIGHTNESS);
     }

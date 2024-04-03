@@ -332,9 +332,10 @@ impl Mikro {
                     .expect("unknown button received from device");
 
                 if (byte & (1 << (off - 1))) != 0 {
-                    handler.button_down(self, btn);
+                    println!("{}", byte);
+                    handler.button_down(self, btn, byte);
                 } else {
-                    handler.button_up(self, btn);
+                    handler.button_up(self, btn, byte);
                 }
                 diff >>= off;
             }

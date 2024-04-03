@@ -260,6 +260,8 @@ pub trait MaschineHandler {
 
     fn encoder_step(&mut self, _: &mut dyn Maschine, encoder_idx: usize, delta: i32) {}
 
-    fn button_down(&mut self, _: &mut dyn Maschine, button: MaschineButton) {}
-    fn button_up(&mut self, _: &mut dyn Maschine, button: MaschineButton) {}
+    fn button_down(&mut self, _: &mut dyn Maschine, button: MaschineButton, byte: u8) {}
+    fn button_up(&mut self, _: &mut dyn Maschine, button: MaschineButton, byte: u8) {}
+
+    fn read_input(&mut self, _: &mut dyn Maschine) {}
 }
