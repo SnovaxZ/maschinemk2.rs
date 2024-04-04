@@ -231,10 +231,7 @@ pub enum MaschineButton {
     P8,
 }
 
-pub enum MaschineScreen {
-    Screen1,
-    Screen2,
-}
+
 
 
 pub trait Maschine {
@@ -252,6 +249,7 @@ pub trait Maschine {
 
     fn clear_screen(&mut self);
     fn write_lights(&mut self);
+    fn write_screen(&mut self);
 }
 
 #[allow(unused_variables)]
@@ -262,6 +260,8 @@ pub trait MaschineHandler {
 
     fn encoder_step(&mut self, _: &mut dyn Maschine, encoder_idx: usize, delta: i32) {}
 
-    fn button_down(&mut self, _: &mut dyn Maschine, button: MaschineButton) {}
-    fn button_up(&mut self, _: &mut dyn Maschine, button: MaschineButton) {}
+    fn button_down(&mut self, _: &mut dyn Maschine, button: MaschineButton, byte: u8) {}
+    fn button_up(&mut self, _: &mut dyn Maschine, button: MaschineButton, byte: u8) {}
+
+    fn read_input(&mut self, _: &mut dyn Maschine) {}
 }

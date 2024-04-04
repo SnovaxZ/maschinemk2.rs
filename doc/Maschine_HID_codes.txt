@@ -5,6 +5,8 @@ The lights are in three modules:
 - Usage 0x81 to end collection: Groups rgb (6 lights each = 48), Transport lights (8) total of 56
 - Usage 0x82 to end collection: the rest of the buttons 31
 
+- Usage 0XE0 and 0xE1 are the screen indexes
+
 
 0x06, 0x01, 0xFF,  // Usage Page (Vendor Defined 0xFF01)
 0x09, 0x00,        // Usage (0x00)
