@@ -332,7 +332,7 @@ impl Mikro {
                     .expect("unknown button received from device");
 
                 if (byte & (1 << (off - 1))) != 0 {
-                    println!("{}", byte);
+                    //println!("{}", byte);
                     handler.button_down(self, btn, byte);
                 } else {
                     handler.button_up(self, btn, byte);
@@ -472,10 +472,10 @@ impl Maschine for Mikro {
             _ => return,
         };
         if idx != 0 {
-            println!("this {idx}");
-            self.light_buf2[idx] = (brightness * 255.0) as u8;
+            //println!("light this {}, brightness {}", idx, brightness);
+            self.light_buf2[idx] = brightness as u8;
         } else {
-            self.light_buf3[idx2] = (brightness * 255.0) as u8;
+            self.light_buf3[idx2] = brightness as u8;
         }
     }
 
@@ -554,7 +554,7 @@ impl Maschine for Mikro {
         let info = reader.next_frame(&mut picture).unwrap();
         let bytes = &picture[..info.buffer_size()];
         let mut screen_buf = [0u8; 1 + 8 + 512];
-        println!("{}", bytes.len());
+        //println!("{}", bytes.len());
 
         //let mut screen_buf2 = [0u8; 1 + 8+ 512];
         screen_buf[0] = 0xE0;

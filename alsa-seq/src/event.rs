@@ -89,10 +89,13 @@ impl TransliteratedFromCMacros for snd_seq_event_t {
             (*note).duration = duration;
         }
     }
+
     fn set_button(&mut self, _type: c_uint) {
         self._type = _type as snd_seq_event_type_t;
-        //self.set_fixed();
+        self.set_fixed();
+        //let queue = self.data.queue();
     }
+
     fn set_cc(&mut self, _type: c_uint, channel: Channel, controller_number: u16, position: u8) {
         self._type = _type as snd_seq_event_type_t;
         //self.set_fixed()
