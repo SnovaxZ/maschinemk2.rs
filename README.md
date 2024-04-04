@@ -13,8 +13,7 @@ It is absolutely and completely untested and I have never written rust before th
 - Osc from the original maschine.rs
 - Mappable 
 
-`
-``
+
 
 # Building
 to build maschinemk2.rs you will need rustc and cargo.
@@ -22,7 +21,7 @@ to install rust, go to: https://www.rust-lang.org/tools/install
 
 build:
 ``` sh
-git clone https://github.com/SnovaxZ/maschinemk2.rs.git'
+git clone https://github.com/SnovaxZ/maschinemk2.rs.git
 cd maschinemk2.rs
 ./build.sh
 ```
@@ -40,7 +39,7 @@ First: figure out which hidraw path your maschine uses.
 Second (optional): change the udev rules so you can run without sudo.
 
 Third: You can just run the *run.sh* in your terminal (sudo if needed).
-'sudo ./run.sh'
+`sudo ./run.sh`
 
 *if you can not run the build program you might need to make sure it is executable*
 
